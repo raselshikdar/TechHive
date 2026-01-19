@@ -289,3 +289,46 @@ export async function isBookmarked(postId: string) {
 
   return !!data
 }
+export async function getBookmarkedPosts() {
+  const supabase = await createServerClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .select(`
+      posts (
+        id,
+        title,
+        slug,
+        excerpt,
+        thumbnail_url,
+        created_at,
+        view_count,
+        like_count,
+        comment_count,
+        profiles:author_id (
+          username,
+          display_name,
+          avatar_url
+        ),
+        categories (
+          name,
+          slug
+        )
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (error || !data) return []
+
+  return data.map(b => ({
+    ...b.posts,
+    isBookmarked: true,
+  }))
+}
