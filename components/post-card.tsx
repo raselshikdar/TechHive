@@ -138,13 +138,14 @@ export function PostCard({ post, compact = false }: PostCardProps) {
             </span>
 
             {category && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <span className="font-medium text-primary">
-                  {category.name}
-                </span>
-              </>
-            )}
+  <>
+    <span className="text-muted-foreground">•</span>
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+      bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+      {category.name}
+    </span>
+  </>
+)}
 
             <span className="text-muted-foreground">•</span>
 
