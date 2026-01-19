@@ -1,6 +1,6 @@
-# TrickBD Clone - Bangladeshi Tech Forum
+# TechHive - Bangladeshi Tech Blog
 
-A full-featured tech forum and community platform inspired by TrickBD, built with Next.js 16, React 19, Supabase, and TypeScript.
+A full-featured tech blog and community platform inspired by TrickBD, built with Next.js 16, React 19, Supabase, and TypeScript.
 
 ## Features
 
