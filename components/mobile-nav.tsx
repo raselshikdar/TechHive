@@ -66,13 +66,13 @@ export function MobileNav({ user, onClose }: MobileNavProps) {
           <span className="font-medium">Home</span>
         </Link>
 
-        <Link
-  href="/bookmarks"
-          onClick={onClose}
-  className="flex items-center gap-3"
+        <Link 
+  href="/bookmarks" 
+  onClick={onClose}
+  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
 >
-  <Bookmark className="h-4 w-4" />
-  <span>Bookmarks</span>
+  <Bookmark className="h-5 w-5 text-muted-foreground shrink-0" />
+  <span className="font-medium leading-none">Bookmarks</span>
 </Link>
         
         <Link 
