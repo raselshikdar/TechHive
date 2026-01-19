@@ -63,7 +63,7 @@ export async function getHotPosts(limit = 4) {
     `)
     .eq('status', 'published')
     .order('view_count', { ascending: false })
-    .order('like_count', { ascending: false})
+    .order('like_count', { ascending: false })
     .limit(limit)
 
   if (error) {
@@ -74,9 +74,14 @@ export async function getHotPosts(limit = 4) {
   return posts
 }
 
+/* ===================== UPDATED FUNCTION ===================== */
 export async function getPosts(page = 1, limit = 15, categoryId?: string) {
   const supabase = await createServerClient()
   const offset = (page - 1) * limit
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   let query = supabase
     .from('posts')
@@ -95,7 +100,10 @@ export async function getPosts(page = 1, limit = 15, categoryId?: string) {
         slug
       ),
       post_likes (count),
-      comments (count)
+      comments (count),
+      bookmarks!left (
+        id
+      )
     `)
     .eq('status', 'published')
     .order('created_at', { ascending: false })
@@ -107,13 +115,17 @@ export async function getPosts(page = 1, limit = 15, categoryId?: string) {
 
   const { data: posts, error } = await query
 
-  if (error) {
+  if (error || !posts) {
     console.error('[v0] Error fetching posts:', error)
     return []
   }
 
-  return posts
+  return posts.map(post => ({
+    ...post,
+    isBookmarked: user ? post.bookmarks?.length > 0 : false,
+  }))
 }
+/* ============================================================ */
 
 export async function getPostBySlug(slug: string) {
   const supabase = await createServerClient()
@@ -145,11 +157,11 @@ export async function getPostBySlug(slug: string) {
     return null
   }
 
-  // ✅ Increment view count safely (NO RPC)
-await supabase
-  .from('posts')
-  .update({ view_count: (post.view_count || 0) + 1 })
-  .eq('id', post.id)
+  // ✅ Increment view count safely
+  await supabase
+    .from('posts')
+    .update({ view_count: (post.view_count || 0) + 1 })
+    .eq('id', post.id)
 
   return post
 }
@@ -178,7 +190,6 @@ export async function toggleLike(postId: string) {
     return { error: 'You must be logged in to like posts' }
   }
 
-  // Check if already liked
   const { data: existingLike } = await supabase
     .from('post_likes')
     .select('id')
@@ -187,14 +198,12 @@ export async function toggleLike(postId: string) {
     .maybeSingle()
 
   if (existingLike) {
-    // Unlike
     await supabase
       .from('post_likes')
       .delete()
       .eq('post_id', postId)
       .eq('user_id', user.id)
   } else {
-    // Like
     await supabase
       .from('post_likes')
       .insert({ post_id: postId, user_id: user.id })
@@ -235,6 +244,7 @@ export async function searchPosts(query: string) {
 
   return posts
 }
+
 export async function toggleBookmark(postId: string) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -251,31 +261,19 @@ export async function toggleBookmark(postId: string) {
     .maybeSingle()
 
   if (existing) {
-    await supabase
-      .from('bookmarks')
-      .delete()
-      .eq('id', existing.id)
-
-    // ✅ revalidate after REMOVE
+    await supabase.from('bookmarks').delete().eq('id', existing.id)
     revalidatePath('/')
-
     return { bookmarked: false }
   } else {
-    await supabase
-      .from('bookmarks')
-      .insert({
-        post_id: postId,
-        user_id: user.id,
-      })
-
-    // ✅ revalidate after ADD
+    await supabase.from('bookmarks').insert({
+      post_id: postId,
+      user_id: user.id,
+    })
     revalidatePath('/')
-
     return { bookmarked: true }
   }
 }
 
-// Check bookmark state (used for icon)
 export async function isBookmarked(postId: string) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
