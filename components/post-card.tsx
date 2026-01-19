@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { createBrowserClient } from '@supabase/ssr'
 
 // ✅ ADD THESE IMPORTS
 import { toggleBookmark, isBookmarked } from '@/lib/actions/posts'
@@ -51,8 +52,33 @@ export function PostCard({ post, compact = false }: PostCardProps) {
 
   // ✅ INITIAL BACKEND CHECK (VERY IMPORTANT)
   useEffect(() => {
-    isBookmarked(post.id).then(setIsBookmarkedState)
-  }, [post.id])
+  const check = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setIsBookmarkedState(false)
+      return
+    }
+
+    const { data } = await supabase
+      .from('bookmarks')
+      .select('id')
+      .eq('post_id', post.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    setIsBookmarkedState(!!data)
+  }
+
+  check()
+}, [post.id])
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/post/${post.slug}`
