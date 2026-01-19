@@ -11,9 +11,12 @@ import {
   Share2,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+
+// ✅ ADD THESE IMPORTS
+import { toggleBookmark, isBookmarked } from '@/lib/actions/posts'
 
 interface PostCardProps {
   post: {
@@ -41,10 +44,15 @@ interface PostCardProps {
 
 export function PostCard({ post, compact = false }: PostCardProps) {
   const { toast } = useToast()
-  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [isBookmarkedState, setIsBookmarkedState] = useState(false)
 
   const author = post.profiles
   const category = post.categories
+
+  // ✅ INITIAL BACKEND CHECK (VERY IMPORTANT)
+  useEffect(() => {
+    isBookmarked(post.id).then(setIsBookmarkedState)
+  }, [post.id])
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/post/${post.slug}`
@@ -66,10 +74,22 @@ export function PostCard({ post, compact = false }: PostCardProps) {
     }
   }
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked)
+  // ✅ BACKEND BOOKMARK TOGGLE
+  const handleBookmark = async () => {
+    const res = await toggleBookmark(post.id)
+
+    if (res?.error === 'LOGIN_REQUIRED') {
+      toast({
+        title: 'Login required',
+        description: 'Please sign in to bookmark posts',
+      })
+      return
+    }
+
+    setIsBookmarkedState(res.bookmarked)
+
     toast({
-      title: isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+      title: res.bookmarked ? 'Added to bookmarks' : 'Removed from bookmarks',
       description: post.title,
     })
   }
@@ -132,20 +152,18 @@ export function PostCard({ post, compact = false }: PostCardProps) {
               />
             )}
 
-            {/* Author name (desktop only) */}
             <span className="hidden sm:inline font-medium text-foreground">
               {author?.display_name || 'Anonymous'}
             </span>
 
             {category && (
-  <>
-    <span className="text-muted-foreground">•</span>
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-      bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-      {category.name}
-    </span>
-  </>
-)}
+              <>
+                <span className="text-muted-foreground">•</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                  {category.name}
+                </span>
+              </>
+            )}
 
             <span className="text-muted-foreground">•</span>
 
@@ -171,7 +189,7 @@ export function PostCard({ post, compact = false }: PostCardProps) {
         </div>
       </Link>
 
-      {/* NON-CLICKABLE: STATS & ACTIONS (UNCHANGED BEHAVIOR) */}
+      {/* NON-CLICKABLE: STATS & ACTIONS */}
       <div className="px-4 pb-4 pt-2 border-t">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-xs text-foreground">
@@ -199,7 +217,7 @@ export function PostCard({ post, compact = false }: PostCardProps) {
             >
               <Bookmark
                 className={`h-4 w-4 ${
-                  isBookmarked ? 'fill-current' : ''
+                  isBookmarkedState ? 'fill-current text-primary' : ''
                 }`}
               />
             </Button>
