@@ -11,12 +11,10 @@ import {
   Share2,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { getSupabaseBrowserClient } from '@/lib/supabase/client'
-// ✅ ADD THESE IMPORTS
-import { toggleBookmark, isBookmarked } from '@/lib/actions/posts'
+import { toggleBookmark } from '@/lib/actions/posts'
 
 interface PostCardProps {
   post: {
@@ -29,6 +27,7 @@ interface PostCardProps {
     view_count: number
     like_count: number
     comment_count: number
+    isBookmarked?: boolean
     profiles?: {
       username: string
       display_name?: string
@@ -44,37 +43,14 @@ interface PostCardProps {
 
 export function PostCard({ post, compact = false }: PostCardProps) {
   const { toast } = useToast()
-  const [isBookmarkedState, setIsBookmarkedState] = useState(false)
+
+  // ✅ STATE COMES FROM SERVER (IMPORTANT)
+  const [isBookmarkedState, setIsBookmarkedState] = useState(
+    post.isBookmarked ?? false
+  )
 
   const author = post.profiles
   const category = post.categories
-
-  // ✅ INITIAL BACKEND CHECK (VERY IMPORTANT)
-  useEffect(() => {
-  const check = async () => {
-    const supabase = getSupabaseBrowserClient()
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      setIsBookmarkedState(false)
-      return
-    }
-
-    const { data } = await supabase
-      .from('bookmarks')
-      .select('id')
-      .eq('post_id', post.id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    setIsBookmarkedState(!!data)
-  }
-
-  check()
-}, [post.id])
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/post/${post.slug}`
@@ -96,7 +72,7 @@ export function PostCard({ post, compact = false }: PostCardProps) {
     }
   }
 
-  // ✅ BACKEND BOOKMARK TOGGLE
+  // ✅ BACKEND BOOKMARK TOGGLE (UNCHANGED BEHAVIOR)
   const handleBookmark = async () => {
     const res = await toggleBookmark(post.id)
 
