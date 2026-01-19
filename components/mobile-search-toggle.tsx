@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { SearchBar } from '@/components/search-bar'
 
 export function MobileSearchToggle() {
@@ -9,19 +9,32 @@ export function MobileSearchToggle() {
 
   return (
     <>
-      {/* Search icon (mobile only) */}
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className="md:hidden p-2 rounded-md hover:bg-muted"
-        aria-label="Search"
-      >
-        <Search className="h-5 w-5" />
-      </button>
+      {/* Toggle button (only when search is closed) */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="md:hidden p-2 rounded-md hover:bg-muted"
+          aria-label="Open search"
+        >
+          <Search className="h-5 w-5" />
+        </button>
+      )}
 
-      {/* Search bar (mobile only, toggle) */}
+      {/* Search bar (full width, mobile only) */}
       {open && (
-        <div className="md:hidden border-t bg-background px-4 py-3">
-          <SearchBar />
+        <div className="md:hidden w-full border-t bg-background px-4 py-3 flex items-center gap-2">
+          <div className="flex-1">
+            <SearchBar />
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={() => setOpen(false)}
+            className="p-2 rounded-md hover:bg-muted"
+            aria-label="Close search"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
       )}
     </>
