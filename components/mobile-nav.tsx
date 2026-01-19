@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Home, Grid, PlusCircle, User, LogIn, UserPlus, X } from 'lucide-react'
+import { Home, Bookmark, Grid, PlusCircle, User, LogIn, UserPlus, X } from 'lucide-react'
 
 interface MobileNavProps {
   user: any
@@ -65,6 +65,15 @@ export function MobileNav({ user, onClose }: MobileNavProps) {
           <Home className="h-5 w-5 text-muted-foreground" />
           <span className="font-medium">Home</span>
         </Link>
+
+        <Link
+  href="/bookmarks"
+          onClick={onClose}
+  className="flex items-center gap-3"
+>
+  <Bookmark className="h-4 w-4" />
+  <span>Bookmarks</span>
+</Link>
         
         <Link 
           href="/categories" 
