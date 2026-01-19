@@ -146,7 +146,10 @@ export async function getPostBySlug(slug: string) {
   }
 
   // Increment view count
-  await supabase.rpc('increment_post_views', { post_id: post.id })
+await supabase.rpc('increment_post_views', { post_id: post.id })
+
+// 🔥 VERY IMPORTANT: revalidate lists
+revalidatePath('/')
 
   return post
 }
