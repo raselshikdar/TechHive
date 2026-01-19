@@ -23,16 +23,6 @@ export async function Header() {
           <span className="font-bold text-xl hidden sm:inline">TechHive</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors">
-            Categories
-          </Link>
-          <Link href="/authors" className="text-sm font-medium hover:text-primary transition-colors">
-            Authors
-          </Link>
-        </nav>
-
         {/* Desktop Search Bar (unchanged) */}
         <div className="hidden md:block flex-1 max-w-md mx-4">
           <SearchBar />
