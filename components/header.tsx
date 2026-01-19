@@ -1,18 +1,15 @@
-'use client'
-
-import * as React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, signOut } from '@/lib/actions/auth'
 import { SearchBar } from '@/components/search-bar'
 import { UserMenu } from '@/components/user-menu'
 import { NotificationsDropdown } from '@/components/notifications-dropdown'
-import { Menu, PlusCircle, Search } from 'lucide-react'
+import { Menu, PlusCircle } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { MobileNav } from '@/components/mobile-nav'
+import { MobileSearchToggle } from '@/components/mobile-search-toggle'
 
 export async function Header() {
-  const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false)
   const userData = await getCurrentUser()
 
   return (
@@ -47,13 +44,7 @@ export async function Header() {
         {/* Actions */}
         <div className="flex items-center gap-3">
           {/* Mobile Search Icon */}
-          <button
-            onClick={() => setMobileSearchOpen(prev => !prev)}
-            className="md:hidden p-2 rounded-md hover:bg-muted"
-            aria-label="Search"
-          >
-            <Search className="h-5 w-5" />
-          </button>
+          <MobileSearchToggle />
 
           {userData ? (
             <>
@@ -90,13 +81,6 @@ export async function Header() {
           </Sheet>
         </div>
       </div>
-
-      {/* Mobile Search Bar (toggle) */}
-      {mobileSearchOpen && (
-        <div className="md:hidden border-t bg-background px-4 py-3">
-          <SearchBar />
-        </div>
-      )}
     </header>
   )
 }
