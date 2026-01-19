@@ -235,3 +235,59 @@ export async function searchPosts(query: string) {
 
   return posts
 }
+export async function toggleBookmark(postId: string) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'LOGIN_REQUIRED' }
+  }
+
+  const { data: existing } = await supabase
+    .from('bookmarks')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase
+      .from('bookmarks')
+      .delete()
+      .eq('id', existing.id)
+
+    // ✅ revalidate after REMOVE
+    revalidatePath('/')
+
+    return { bookmarked: false }
+  } else {
+    await supabase
+      .from('bookmarks')
+      .insert({
+        post_id: postId,
+        user_id: user.id,
+      })
+
+    // ✅ revalidate after ADD
+    revalidatePath('/')
+
+    return { bookmarked: true }
+  }
+}
+
+// Check bookmark state (used for icon)
+export async function isBookmarked(postId: string) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return false
+
+  const { data } = await supabase
+    .from('bookmarks')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  return !!data
+}
